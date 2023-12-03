@@ -1,0 +1,258 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  ScheduleExpression:
+    Type: String
+    Description: The CloudWatch cron or rate expression to determine how often each web feed is checked for new content
+    Default: 'rate(1 hour)'
+  EventBusName:
+    Description: Name of event bus to which web feed notifications are sent
+    Type: String
+    Default: 'rss'
+  FeedQueueVisibilityTimeout:
+    Description: The amount of seconds to wait until a message is made visible again for the feed SQS queue
+    Type: Number
+    Default: 90
+    MinValue: 65
+  ItemQueueVisibilityTimeout:
+    Description: The amount of seconds to wait until a message is made visible again for the item SQS queue
+    Type: Number
+    Default: 30
+    MinValue: 20
+  FeedQueueRetention:
+    Description: The amount of seconds to retain a message in the feed SQS queue
+    Type: Number
+    Default: 300
+  ItemQueueRetention:
+    Description: The amount of seconds to retain a message in the item SQS queue
+    Type: Number
+    Default: 300
+  FeedQueueRetries:
+    Description: The amount of seconds to retain a message in the feed SQS queue
+    Type: Number
+    Default: 3
+  ItemQueueRetries:
+    Description: The amount of seconds to retain a message in the item SQS queue
+    Type: Number
+    Default: 3    
+
+Outputs:
+  SourcesTableName:
+    Description: Name of web feed source table
+    Value: !Ref SourcesTable
+  SourcesTableArn: 
+    Description: ARN of web feed source table
+    Value: !GetAtt SourcesTable.Arn
+  ItemsTableName:
+    Description: Name of feed item table
+    Value: !Ref ItemsTable
+  ItemsTableArn: 
+    Description: ARN of feed item table
+    Value: !GetAtt ItemsTable.Arn
+  EventBusName:
+    Description: Name of event bus
+    Value: !Ref EventBus
+  EventBusArn:
+    Description: ARN of event bus
+    Value: !GetAtt EventBus.Arn
+
+Resources:
+
+  ## EVENT BUSES ##
+
+  # The EventBridge event bus to which web feed notifications are sent
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Ref EventBusName
+
+
+  ## DYNAMO TABLES ##
+
+  # Holds all sources of web feeds
+  SourcesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        # 'source' is the URL of the web feed
+        Name: source
+        Type: String
+
+  # Holds all processed feed items for each source
+  ItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions: 
+        -
+          # 'source' is the URL of the web feed
+          AttributeName: source
+          AttributeType: S
+        -
+          # 'id' is the id of the feed item
+          AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        -
+          AttributeName: source
+          KeyType: HASH
+        -
+          AttributeName: id
+          KeyType: RANGE
+
+
+  ## SQS QUEUES ##
+
+  # Standard queue for processing each web feed source 
+  FeedQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: !Ref FeedQueueVisibilityTimeout
+      MessageRetentionPeriod: !Ref FeedQueueRetention
+      RedrivePolicy:
+        maxReceiveCount: !Ref FeedQueueRetries
+        deadLetterTargetArn: !Ref StandardDeadLetterQueue
+
+  # Standard queue for processing feed items
+  ItemQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: !Ref ItemQueueVisibilityTimeout
+      MessageRetentionPeriod: !Ref ItemQueueRetention
+      RedrivePolicy:
+        maxReceiveCount: !Ref ItemQueueRetries
+        deadLetterTargetArn: !Ref StandardDeadLetterQueue
+
+  # Standard dead-letter queue for feed queue processing failures and custom error events
+  StandardDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 90
+
+
+  ## LAMBDA FUNCTIONS ##
+
+  # Runs on a schedule. Reads all sources from the sources DynamoDB table, 
+  # and sends a message to the feed SQS queue for each source.
+  ListSourcesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: functions/list-sources
+      Timeout: 30
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SourcesTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt FeedQueue.QueueName
+        - 
+          SQSSendMessagePolicy:
+            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+      Environment:
+        Variables:
+          DYNAMO_TABLE: !Ref SourcesTable
+          QUEUE_URL: !Ref FeedQueue
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref ScheduleExpression
+            Enabled: True
+
+  # Processes messages from the feed SQS queue. Reads the content of
+  # the web feed, and extracts feed properties and items. New feed 
+  # items are sent to the item SQS queue for processing, and old feed items
+  # are removed from the items DynamoDB table. 
+  ProcessFeedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: functions/process-feed
+      Timeout: 60
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ItemsTable
+        - SQSPollerPolicy:
+            QueueName: !GetAtt FeedQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ItemQueue.QueueName
+        - 
+          SQSSendMessagePolicy:
+            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+      Environment:
+        Variables:
+          DYNAMO_TABLE: !Ref ItemsTable
+          FEED_QUEUE_URL: !Ref FeedQueue
+          ITEM_QUEUE_URL: !Ref ItemQueue
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FeedQueue.Arn
+            Enabled: True
+
+  # Processes messages from the item SQS queue. Sends an event to the event bus
+  # and inserts a row into the item DynamoDB table.
+  ProcessItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: functions/process-item
+      Timeout: 15
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ItemsTable
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ItemQueue.QueueName
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref EventBus
+        - 
+          SQSSendMessagePolicy:
+            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+      Environment:
+        Variables:
+          DYNAMO_TABLE: !Ref ItemsTable
+          ITEM_QUEUE_URL: !Ref ItemQueue
+          EVENT_BUS_NAME: !Ref EventBus
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ItemQueue.Arn
+            Enabled: True
+
+
+  # Processes messages from the dead-letter queues. Sends an error event to the event bus
+  ProcessDlqFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: functions/process-dlq
+      Timeout: 75
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref EventBus
+      Environment:
+        Variables:
+          EVENT_BUS_NAME: !Ref EventBus
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+          STANDARD_DEAD_LETTER_QUEUE_ARN: !GetAtt StandardDeadLetterQueue.Arn
+          FEED_QUEUE_ARN: !GetAtt FeedQueue.Arn
+          ITEM_QUEUE_ARN: !GetAtt ItemQueue.Arn
+      Events:
+        StandardSQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt StandardDeadLetterQueue.Arn
+            Enabled: True
