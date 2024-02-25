@@ -1,6 +1,7 @@
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { DeleteMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 // AWS SDK clients
 const dynamodbClient = new DynamoDBClient();

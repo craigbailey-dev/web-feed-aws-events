@@ -1,7 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
-
-// Axios HTTP/S client
-const feedHttpClient = new Axios();
+import { default as axiosStatic } from 'axios';
 
 // XML parsers
 const rssXmlParser = new XMLParser({
@@ -21,9 +19,16 @@ const atomXmlParser = new XMLParser({
     ignoreAttributes: false,
     isArray: (name, jpath, isLeafNode, isAttribute) => {
         return [
-            "feed.entry"
+            "feed.entry",
+            "feed.entry.category",
+            "feed.entry.link",
+            "feed.entry.contributor",
+            "feed.category",
+            "feed.contributor",
+            "feed.link"
         ].includes(jpath);
-    }
+    },
+    stopNodes: ["feed.entry.content"]
 });
 
 /**
@@ -39,7 +44,7 @@ export async function fetchRssItems(source, headers){
     if(headers){
         httpRequestConfig.headers = headers;
     }
-    const httpResponse = await feedHttpClient.get(source, httpRequestConfig);
+    const httpResponse = await axiosStatic.get(source, httpRequestConfig);
     const parsed = rssXmlParser.parse(httpResponse.data);
 
     // Fill in supported feed properties
@@ -151,18 +156,134 @@ export async function fetchRssItems(source, headers){
  * @returns The properties of the feed and the items in the feed
  */
 export async function fetchAtomItems(source, headers){
+
+    function parseAtomPerson(person){
+        return {
+            name: person.name,
+            uri: person.name,
+            email: person.email
+        };
+    }
+
+    function parseAtomCategory(category){
+        return {
+            term: category['@_term'],
+            scheme: category['@_scheme'],
+            label: category['@_label']
+        };
+    }
+
+    function parseAtomLink(link){
+        return {
+            href: link['@_href'],
+            rel: link['@_rel'],
+            type: link['@_type'],
+            hreflang: link['@_hreflang'],
+            title: link['@_title'],
+            length: link['@_length']
+        };
+    }
+
+    function parseAtomContent(content){
+        if(typeof content === "object" && content["#text"]){
+            return {
+                src: content['@_src'],
+                type: content['@_type'],
+                text: content['#text']
+            }
+        }
+        else if(typeof content === "string"){
+            return {
+                text: content
+            }
+        }
+    }
+
     const feedProperties = {};
     const items = [];
     const httpRequestConfig = {};
     if(headers){
         httpRequestConfig.headers = headers;
     }
-    const httpResponse = await feedHttpClient.get(source, httpRequestConfig);
+    const httpResponse = await axiosStatic.get(source, httpRequestConfig);
     const parsed = atomXmlParser.parse(httpResponse.data);
+    console.debug(JSON.stringify(parsed));
     // Fill in supported feed properties
     for(const [properyName, propertyValue] of Object.entries(parsed.feed)){
         switch(properyName){
-            
+            case "id":
+            case "updated":
+            case "icon":
+            case "logo": 
+                feedProperties[properyName] = propertyValue;
+                break;
+            case "author":
+                feedProperties[properyName] = parseAtomPerson(propertyValue);
+                break;
+            case "link":
+                feedProperties.links = propertyValue.map(parseAtomLink);
+                break;
+            case "category":
+                feedProperties.categories = propertyValue.map(parseAtomCategory);
+                break;
+            case "contributor":
+                feedProperties.contributors = propertyValue.map(parseAtomPerson);
+                break;
+            case "generator":
+                feedProperties.generator = {
+                    uri: propertyValue['@_uri'],
+                    version: propertyValue['@_version']
+                };
+                break;
+            case "title":
+            case "rights": 
+            case "subtitle":
+                feedProperties[properyName] = parseAtomContent(propertyValue);
+                break;
+            case "entry":
+                for(const entryElement of propertyValue){
+                    const entry = {};
+                    for(const [entryProperyName, entryPropertyValue] of Object.entries(entryElement)){
+                        switch(entryProperyName){
+                            case "id":
+                            case "updated":
+                            case "published":
+                                entry[entryProperyName] = entryPropertyValue;
+                                break;
+                            case "title":
+                            case "rights": 
+                            case "summary":
+                                entry[entryProperyName] = parseAtomContent(entryPropertyValue);
+                                break;
+                            case "author":
+                                entry[entryProperyName] = parseAtomPerson(entryPropertyValue);
+                                break;
+                            case "link":
+                                entry.links = entryPropertyValue.map(parseAtomLink);
+                                break;
+                            case "category":
+                                entry.categories = entryPropertyValue.map(parseAtomCategory);
+                                break;
+                            case "contributor":
+                                entry.contributors = entryPropertyValue.map(parseAtomPerson);
+                                break;
+                            case "source":
+                                entry.source = {
+                                    id: entryPropertyValue['@_id'],
+                                    title: entryPropertyValue['@_title'],
+                                    updated: entryPropertyValue['@_updated']
+                                };
+                                break;
+                            case "content":
+                                entry.content = parseAtomContent(entryPropertyValue);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    items.push(entry);
+                }
+                break;
             default:
                 break;
         }

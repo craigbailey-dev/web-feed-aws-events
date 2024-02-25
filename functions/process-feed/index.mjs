@@ -37,7 +37,7 @@ export const handler = async(event) => {
             await deleteOldItems(source, oldItemIds);
             await sendQueueMessages(source, type, feedProperties, newItems);
             await sqsClient.send(new DeleteMessageCommand({
-                QueueUrl: process.env.CHANNEL_QUEUE_URL,
+                QueueUrl: process.env.FEED_QUEUE_URL,
                 ReceiptHandle: record.receiptHandle
             }));
         }

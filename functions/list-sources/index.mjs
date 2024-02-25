@@ -1,7 +1,7 @@
-import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { SQSClient, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
-import { randomUUID } from 'crypto';
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { SQSClient, SendMessageBatchCommand } from "@aws-sdk/client-sqs";
+import { randomUUID } from "crypto";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 // AWS SDK clients
 const dynamodbClient = new DynamoDBClient();
@@ -61,7 +61,7 @@ export const handler = async(event, context) => {
         */
         if(sendMessageBatchResponse.Failed){ 
             for(const failed of sendMessageBatchResponse.Failed){
-                console.error(`Failed to send SQS message: ${JSON.stringify(failed)}`);
+                console.error("Failed to send SQS message:", JSON.stringify(failed));
             }
             await sqsClient.send(new SendMessageBatchCommand({
                 QueueUrl: process.env.STANDARD_DEAD_LETTER_QUEUE_URL,
