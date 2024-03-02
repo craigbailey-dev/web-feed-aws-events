@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { default as axiosStatic } from 'axios';
+import { minify } from "html-minifier";
 
 // XML parsers
 const rssXmlParser = new XMLParser({
@@ -103,44 +104,46 @@ export async function fetchRssItems(source, headers){
                 feedProperties.skipDays = propertyValue.day;
                 break;
             case "item":
-                const item = {};
-                for(const [itemProperyName, itemPropertyValue] of Object.entries(propertyValue)){
-                    switch(itemProperyName){
-                        case "title":
-                        case "link":
-                        case "description":
-                        case "author":
-                        case "comments":
-                        case "guid":
-                        case "pubDate":
-                            if(typeof itemPropertyValue === "object" && itemPropertyValue["#text"]){
-                                item[itemProperyName] = itemPropertyValue["#text"];
-                            }
-                            else if(typeof itemPropertyValue === "string"){
-                                item[itemProperyName] = itemPropertyValue
-                            }
-                            break;
-                        case "enclosure":
-                            item.enclosure = {
-                                url: itemPropertyValue['@_url'],
-                                length: itemPropertyValue['@_length'],
-                                type: itemPropertyValue['@_type']
-                            };
-                            break;
-                        case "source":
-                            item.source = {
-                                url: itemPropertyValue['@_url'],
-                                name: itemPropertyValue['#text'],
-                            };
-                            break;
-                        case "category":
-                            item.categories = itemPropertyValue;
-                            break;
-                        default:
-                            break;
-                    }   
+                for(const entryElement of propertyValue){
+                    const item = {};
+                    for(const [itemProperyName, itemPropertyValue] of Object.entries(entryElement)){
+                        switch(itemProperyName){
+                            case "title":
+                            case "link":
+                            case "description":
+                            case "author":
+                            case "comments":
+                            case "guid":
+                            case "pubDate":
+                                if(typeof itemPropertyValue === "object" && itemPropertyValue["#text"]){
+                                    item[itemProperyName] = itemPropertyValue["#text"];
+                                }
+                                else{
+                                    item[itemProperyName] = itemPropertyValue
+                                }
+                                break;
+                            case "enclosure":
+                                item.enclosure = {
+                                    url: itemPropertyValue['@_url'],
+                                    length: itemPropertyValue['@_length'],
+                                    type: itemPropertyValue['@_type']
+                                };
+                                break;
+                            case "source":
+                                item.source = {
+                                    url: itemPropertyValue['@_url'],
+                                    name: itemPropertyValue['#text'],
+                                };
+                                break;
+                            case "category":
+                                item.categories = itemPropertyValue;
+                                break;
+                            default:
+                                break;
+                        }   
+                    }
+                    items.push(item);
                 }
-                items.push(item);
                 break;
             default:
                 break;
@@ -189,7 +192,7 @@ export async function fetchAtomItems(source, headers){
             return {
                 src: content['@_src'],
                 type: content['@_type'],
-                text: content['#text']
+                text: minifyText(content['@_type'], content['#text'])
             }
         }
         else if(typeof content === "string"){
@@ -197,6 +200,12 @@ export async function fetchAtomItems(source, headers){
                 text: content
             }
         }
+    }
+
+    function minifyText(type, text){
+        return type.includes("html") ? minify(text, {
+            collapseWhitespace: true
+        }) : text;
     }
 
     const feedProperties = {};
@@ -207,7 +216,6 @@ export async function fetchAtomItems(source, headers){
     }
     const httpResponse = await axiosStatic.get(source, httpRequestConfig);
     const parsed = atomXmlParser.parse(httpResponse.data);
-    console.debug(JSON.stringify(parsed));
     // Fill in supported feed properties
     for(const [properyName, propertyValue] of Object.entries(parsed.feed)){
         switch(properyName){

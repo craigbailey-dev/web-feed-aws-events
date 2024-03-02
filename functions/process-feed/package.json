@@ -1,11 +1,12 @@
 {
     "dependencies": {
+        "axios": "1.6.3",
         "fast-xml-parser": "4.3.2",
-        "axios": "1.6.3"
+        "html-minifier": "4.0.0"
     },
     "devDependencies": {
         "@aws-sdk/client-dynamodb": "3.454.0",
-        "@aws-sdk/util-dynamodb": "3.454.0",
-        "@aws-sdk/client-sqs": "3.454.0"
-    }   
+        "@aws-sdk/client-sqs": "3.454.0",
+        "@aws-sdk/util-dynamodb": "3.454.0"
+    }
 }

@@ -100,36 +100,38 @@ async function listIds(source){
  * @returns {Promise<BatchResultErrorEntry[]>} Queue messages that fail to send
  */
 async function sendQueueMessages(source, type, feedAttributes, newItems){
-    for(let batchIndex = 0; batchIndex < newItems.length; batchIndex += 10){
-        const batch = newItems.slice(batchIndex, batchIndex + 10);
-        const sendMessageBatchResponse = await sqsClient.send(new SendMessageBatchCommand({
-            Entries: batch.map((item) => {
-                return {
-                    Id: randomUUID(),
-                    QueueUrl: process.env.ITEM_QUEUE_URL,
-                    MessageBody: JSON.stringify({
-                        source,
-                        item,
-                        type,
-                        feed: feedAttributes
-                    })
-                };
-            })
-        }));
-        if(sendMessageBatchResponse.Failed?.length){
-            for(const failed of sendMessageBatchResponse.Failed){
-                console.error(`Failed to send SQS message: ${JSON.stringify(failed)}`);
-            }
-            await sqsClient.send(new SendMessageBatchCommand({
-                QueueUrl: process.env.STANDARD_DEAD_LETTER_QUEUE_URL,
-                Entries: sendMessageBatchResponse.Failed.map(failed => ({
-                    Id: randomUUID(),
-                    MessageBody: JSON.stringify({
-                    type: "ITEM_QUEUE_SEND_FAILURE",
-                        data: failed
-                    })
-                }))
+    if(newItems.length){
+        for(let batchIndex = 0; batchIndex < newItems.length; batchIndex += 10){
+            const batch = newItems.slice(batchIndex, batchIndex + 10);
+            const sendMessageBatchResponse = await sqsClient.send(new SendMessageBatchCommand({
+                QueueUrl: process.env.ITEM_QUEUE_URL,
+                Entries: batch.map((item) => {
+                    return {
+                        Id: randomUUID(),
+                        MessageBody: JSON.stringify({
+                            source,
+                            item,
+                            type,
+                            feed: feedAttributes
+                        })
+                    };
+                })
             }));
+            if(sendMessageBatchResponse.Failed?.length){
+                for(const failed of sendMessageBatchResponse.Failed){
+                    console.error("Failed to send SQS message:", JSON.stringify(failed));
+                }
+                await sqsClient.send(new SendMessageBatchCommand({
+                    QueueUrl: process.env.STANDARD_DEAD_LETTER_QUEUE_URL,
+                    Entries: sendMessageBatchResponse.Failed.map(failed => ({
+                        Id: randomUUID(),
+                        MessageBody: JSON.stringify({
+                        type: "ITEM_QUEUE_SEND_FAILURE",
+                            data: failed
+                        })
+                    }))
+                }));
+            }
         }
     }
 }   
@@ -140,25 +142,27 @@ async function sendQueueMessages(source, type, feedAttributes, newItems){
  * @param {string[]} oldItemIds Old item GUIDs to delete
  */
 async function deleteOldItems(source, oldItemIds){
-    for(let batchIndex = 0; batchIndex < oldItemIds.length; batchIndex += 10){
-        let timeWait = 50;
-        const batch = oldItemIds.slice(batchIndex, batchIndex + 10);
-        let unprocessedItems = {
-            [process.env.DYNAMO_TABLE]: batch.map(id => ({
-                DeleteRequest: {
-                    Key: marshall({ source, id })
-                }
-            }))
-        };
-        do {
-            const deleteResponse = await dynamodbClient.send(new BatchWriteItemCommand({
-                RequestItems: unprocessedItems
-            }));
-            unprocessedItems = deleteResponse.UnprocessedItems;
-            await delay(timeWait);
-            timeWait *= 2;
+    if(oldItemIds.length){
+        for(let batchIndex = 0; batchIndex < oldItemIds.length; batchIndex += 10){
+            let timeWait = 50;
+            const batch = oldItemIds.slice(batchIndex, batchIndex + 10);
+            let unprocessedItems = {
+                [process.env.DYNAMO_TABLE]: batch.map(id => ({
+                    DeleteRequest: {
+                        Key: marshall({ source, id })
+                    }
+                }))
+            };
+            do {
+                const deleteResponse = await dynamodbClient.send(new BatchWriteItemCommand({
+                    RequestItems: unprocessedItems
+                }));
+                unprocessedItems = deleteResponse.UnprocessedItems;
+                await delay(timeWait);
+                timeWait *= 2;
+            }
+            while(unprocessedItems && Object.keys(unprocessedItems).length && timeWait < 1000);
         }
-        while(unprocessedItems && Object.keys(unprocessedItems).length && timeWait < 1000);
     }
 }
 

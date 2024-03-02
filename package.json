@@ -1,22 +1,24 @@
 {
-  "name": "rss-events",
+  "name": "web-feed-aws-events",
   "type": "module",
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "3.478.0",
     "@aws-sdk/client-eventbridge": "3.478.0",
     "@aws-sdk/client-sqs": "3.478.0",
     "@aws-sdk/util-dynamodb": "3.478.0",
-    "fast-xml-parser": "4.3.2",
-    "axios": "1.6.3",
     "@babel/core": "7.23.3",
     "@babel/preset-env": "^7.23.3",
+    "@testing-library/jest-dom": "^6.4.2",
     "aws-sdk-client-mock": "3.0.0",
     "aws-sdk-client-mock-jest": "3.0.0",
+    "axios": "1.6.3",
     "babel-jest": "29.7.0",
+    "fast-xml-parser": "4.3.2",
+    "html-minifier": "4.0.0",
     "jest": "29.7.0",
-    "joi": "17.11.0",
     "jest-joi": "1.1.17",
-    "jest-json": "2.0.0"
+    "jest-json": "2.0.0",
+    "joi": "17.11.0"
   },
   "scripts": {
     "test": "jest"

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss>
+  <channel>
+    <title>Breaking News</title>
+    <description>A RSS news feed containing the latest news</description>
+    <link>http://www.example.com/</link>
+    <nonstandardfeedproperty>Non Standard Feed Property</nonstandardfeedproperty>
+    <language>en-US</language>
+    <category>news</category>
+    <image>
+      <url>https://www.example.com/images/logo.gif</url>
+      <title>Breaking News logo</title>
+      <link>https://www.example.com</link>
+      <width>128</width>
+      <height>128</width>
+      <type>image/gif</type>
+    </image>
+    <skipHours>
+        <hour>0</hour>
+        <hour>1</hour>
+    </skipHours>
+    <skipDays>
+        <day>Saturday</day>
+        <day>Sunday</day>
+    </skipDays>
+    <managingEditor>john.doe@example.com</managingEditor>
+    <webMaster>jane.doe@example.com</webMaster>
+    <docs>http://blogs.harvard.edu/tech/rss</docs>
+    <ttl>60</ttl>
+    <item>
+      <title>Something very important has happened</title>
+      <link>http://www.example.com/press-release/veryimportantmessagegoodjob</link>
+      <description>This is a very informative item. Wow. Amazing</description>
+      <enclosure url="http://www.example.com/sites/default/files/thumbnails/image/helloworld.jpeg" length="70814" type="image/jpeg"/>
+      <guid isPermaLink="false">http://www.example.com/press-release/veryimportantmessage</guid>
+      <pubDate>Thu, 09 Feb 2023 16:45 EST</pubDate>
+      <source url="http://www.example.com/rss/dyn/breaking_news.rss">Breaking News</source>
+      <nonstandardentryproperty>Non Standard Entry Property</nonstandardentryproperty>
+      <category>breaking</category>
+    </item>
+  </channel>
+</rss>
