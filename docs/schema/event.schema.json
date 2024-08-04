@@ -1,0 +1,21 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://github.com/craigbailey-dev/web-feed-aws-events/docs/schemas/events.json",
+	"title": "",
+	"description": "",
+	"type": "object",
+	"properties": {
+        "source": {
+            "type": "string",
+            "description": "The URL used to derive to content of the RSS feed"
+        },
+        "detail": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    
+                }
+            }
+        }
+    }
+}

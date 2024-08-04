@@ -24,7 +24,9 @@ const atomXmlParser = new XMLParser({
             "feed.entry.category",
             "feed.entry.link",
             "feed.entry.contributor",
+            "feed.entry.author",
             "feed.category",
+            "feed.author",
             "feed.contributor",
             "feed.link"
         ].includes(jpath);
@@ -226,7 +228,7 @@ export async function fetchAtomItems(source, headers){
                 feedProperties[properyName] = propertyValue;
                 break;
             case "author":
-                feedProperties[properyName] = parseAtomPerson(propertyValue);
+                feedProperties.authors = propertyValue.map(parseAtomPerson);
                 break;
             case "link":
                 feedProperties.links = propertyValue.map(parseAtomLink);
@@ -264,7 +266,7 @@ export async function fetchAtomItems(source, headers){
                                 entry[entryProperyName] = parseAtomContent(entryPropertyValue);
                                 break;
                             case "author":
-                                entry[entryProperyName] = parseAtomPerson(entryPropertyValue);
+                                entry.authors = entryPropertyValue.map(parseAtomPerson);
                                 break;
                             case "link":
                                 entry.links = entryPropertyValue.map(parseAtomLink);
