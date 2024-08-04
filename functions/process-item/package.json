@@ -1,4 +1,6 @@
 {
+    "name": "process-item",
+    "version": "1.0.0",
     "devDependencies": {
         "@aws-sdk/client-dynamodb": "3.454.0",
         "@aws-sdk/util-dynamodb": "3.454.0",
