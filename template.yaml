@@ -3,14 +3,18 @@ Transform:
 - AWS::Serverless-2016-10-31
 
 Parameters:
+  ResourceNamePrefix:
+    Description: A string too add to the beginning of all resource names
+    Type: String
+    Default: "WebFeedAWSEvents-"
+  ResourceNameSuffix:
+    Description: A string too add to the end of all resource names
+    Type: String
+    Default: ""
   ScheduleExpression:
     Type: String
     Description: The CloudWatch cron or rate expression to determine how often each web feed is checked for new content
     Default: 'rate(1 hour)'
-  EventBusName:
-    Description: Name of event bus to which web feed notifications are sent
-    Type: String
-    Default: 'rss'
   FeedQueueVisibilityTimeout:
     Description: The amount of seconds to wait until a message is made visible again for the feed SQS queue
     Type: Number
@@ -66,7 +70,7 @@ Resources:
   EventBus:
     Type: AWS::Events::EventBus
     Properties:
-      Name: !Ref EventBusName
+      Name: !Sub "${ResourceNamePrefix}EventBus${ResourceNameSuffix}"
 
 
   ## DYNAMO TABLES ##
@@ -75,6 +79,7 @@ Resources:
   SourcesTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
+      TableName: !Sub "${ResourceNamePrefix}Sources${ResourceNameSuffix}"
       PrimaryKey:
         # 'source' is the URL of the web feed
         Name: source
@@ -84,6 +89,7 @@ Resources:
   ItemsTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub "${ResourceNamePrefix}Items${ResourceNameSuffix}"
       AttributeDefinitions: 
         -
           # 'source' is the URL of the web feed
@@ -109,26 +115,29 @@ Resources:
   FeedQueue:
     Type: AWS::SQS::Queue
     Properties:
+      QueueName: !Sub "${ResourceNamePrefix}Feed${ResourceNameSuffix}"
       VisibilityTimeout: !Ref FeedQueueVisibilityTimeout
       MessageRetentionPeriod: !Ref FeedQueueRetention
       RedrivePolicy:
         maxReceiveCount: !Ref FeedQueueRetries
-        deadLetterTargetArn: !Ref StandardDeadLetterQueue
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
 
   # Standard queue for processing feed items
   ItemQueue:
     Type: AWS::SQS::Queue
     Properties:
+      QueueName: !Sub "${ResourceNamePrefix}Item${ResourceNameSuffix}"
       VisibilityTimeout: !Ref ItemQueueVisibilityTimeout
       MessageRetentionPeriod: !Ref ItemQueueRetention
       RedrivePolicy:
         maxReceiveCount: !Ref ItemQueueRetries
-        deadLetterTargetArn: !Ref StandardDeadLetterQueue
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
 
   # Standard dead-letter queue for feed queue processing failures and custom error events
-  StandardDeadLetterQueue:
+  DeadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
+      QueueName: !Sub "${ResourceNamePrefix}DeadLetter${ResourceNameSuffix}"
       VisibilityTimeout: 90
 
 
@@ -139,6 +148,7 @@ Resources:
   ListSourcesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${ResourceNamePrefix}ListSources${ResourceNameSuffix}"
       Handler: index.handler
       Runtime: nodejs20.x
       CodeUri: functions/list-sources
@@ -150,12 +160,12 @@ Resources:
             QueueName: !GetAtt FeedQueue.QueueName
         - 
           SQSSendMessagePolicy:
-            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+            QueueName: !GetAtt DeadLetterQueue.QueueName
       Environment:
         Variables:
           DYNAMO_TABLE: !Ref SourcesTable
           QUEUE_URL: !Ref FeedQueue
-          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref DeadLetterQueue
       Events:
         ScheduleEvent:
           Type: Schedule
@@ -170,6 +180,7 @@ Resources:
   ProcessFeedFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${ResourceNamePrefix}ProcessFeed${ResourceNameSuffix}"
       Handler: index.handler
       Runtime: nodejs20.x
       CodeUri: functions/process-feed
@@ -183,13 +194,13 @@ Resources:
             QueueName: !GetAtt ItemQueue.QueueName
         - 
           SQSSendMessagePolicy:
-            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+            QueueName: !GetAtt DeadLetterQueue.QueueName
       Environment:
         Variables:
           DYNAMO_TABLE: !Ref ItemsTable
           FEED_QUEUE_URL: !Ref FeedQueue
           ITEM_QUEUE_URL: !Ref ItemQueue
-          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref DeadLetterQueue
       Events:
         SQSEvent:
           Type: SQS
@@ -202,6 +213,7 @@ Resources:
   ProcessItemFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${ResourceNamePrefix}ProcessItem${ResourceNameSuffix}"
       Handler: index.handler
       Runtime: nodejs20.x
       CodeUri: functions/process-item
@@ -215,13 +227,13 @@ Resources:
             EventBusName: !Ref EventBus
         - 
           SQSSendMessagePolicy:
-            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+            QueueName: !GetAtt DeadLetterQueue.QueueName
       Environment:
         Variables:
           DYNAMO_TABLE: !Ref ItemsTable
           ITEM_QUEUE_URL: !Ref ItemQueue
           EVENT_BUS_NAME: !Ref EventBus
-          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref DeadLetterQueue
       Events:
         SQSEvent:
           Type: SQS
@@ -234,25 +246,26 @@ Resources:
   ProcessDlqFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${ResourceNamePrefix}ProcessDlq${ResourceNameSuffix}"
       Handler: index.handler
       Runtime: nodejs20.x
       CodeUri: functions/process-dlq
       Timeout: 75
       Policies:
         - SQSPollerPolicy:
-            QueueName: !GetAtt StandardDeadLetterQueue.QueueName
+            QueueName: !GetAtt DeadLetterQueue.QueueName
         - EventBridgePutEventsPolicy:
             EventBusName: !Ref EventBus
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref EventBus
-          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref StandardDeadLetterQueue
-          STANDARD_DEAD_LETTER_QUEUE_ARN: !GetAtt StandardDeadLetterQueue.Arn
+          STANDARD_DEAD_LETTER_QUEUE_URL: !Ref DeadLetterQueue
+          STANDARD_DEAD_LETTER_QUEUE_ARN: !GetAtt DeadLetterQueue.Arn
           FEED_QUEUE_ARN: !GetAtt FeedQueue.Arn
           ITEM_QUEUE_ARN: !GetAtt ItemQueue.Arn
       Events:
         StandardSQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt StandardDeadLetterQueue.Arn
+            Queue: !GetAtt DeadLetterQueue.Arn
             Enabled: True
