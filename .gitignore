@@ -132,3 +132,5 @@ dist
 
 .playground
 .aws-sam
+
+.venv
