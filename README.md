@@ -10,15 +10,15 @@
 | Attribute           | Type                | Description                                                                                    |
 | ------------------- |:--------------------| :----------------------------------------------------------------------------------------------|
 | source              | String              | An HTTP/S URL for the feed                                                                     |
-| type                | String              | The feed type (ATOM or RSS)                                                                     |
+| type                | String              | The feed type (ATOM or RSS)                                                                    |
 | httpHeaderOverrides | Map<String, String> | A map of HTTP headers to set when making a<br>request to retrieve content from the source      |
 
 ### Items Table
 
 | Attribute      | Type                | Description                                                                                    |
 | ---------------|:--------------------| :----------------------------------------------------------------------------------------------|
-| source         | String              | The URL of the RSS feed                                                                        |
-| id 		     | String              | The uinique ID of the channel item                                                             |
+| source         | String              | The URL of the feed                                                                            |
+| id 		     | String              | The unique ID of the channel item                                                              |
 
 
 

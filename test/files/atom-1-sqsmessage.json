@@ -61,6 +61,12 @@
           "type": "text",
           "text": "My Awesome Feed Title"
        },
+       "subtitle": {
+          "type": "html",
+          "text": "<p>My Awesome Subtitle</p>"
+       },
+       "icon": "/icon.ico",
+       "logo": "/logo.jpg",
        "updated": "2005-07-31T12:29:29Z",
        "id": "tag:example.org,2003:3",
        "links": [
@@ -81,7 +87,8 @@
        },
        "generator": {
           "uri": "http://www.example.com/",
-          "version": "1.0"
+          "version": "1.0",
+          "text": "Example Toolkit"
        },
        "categories": [
           {

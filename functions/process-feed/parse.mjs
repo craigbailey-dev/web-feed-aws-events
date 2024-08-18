@@ -31,7 +31,7 @@ const atomXmlParser = new XMLParser({
             "feed.link"
         ].includes(jpath);
     },
-    stopNodes: ["feed.entry.content"]
+    stopNodes: ["feed.title", "feed.subtitle", "feed.rights", "feed.entry.title", "feed.entry.rights", "feed.entry.summary", "feed.entry.content"]
 });
 
 /**
@@ -197,7 +197,7 @@ export async function fetchAtomItems(source, headers){
                 text: minifyText(content['@_type'], content['#text'])
             }
         }
-        else if(typeof content === "string"){
+        else{
             return {
                 text: content
             }
@@ -218,6 +218,7 @@ export async function fetchAtomItems(source, headers){
     }
     const httpResponse = await axiosStatic.get(source, httpRequestConfig);
     const parsed = atomXmlParser.parse(httpResponse.data);
+
     // Fill in supported feed properties
     for(const [properyName, propertyValue] of Object.entries(parsed.feed)){
         switch(properyName){
@@ -242,7 +243,8 @@ export async function fetchAtomItems(source, headers){
             case "generator":
                 feedProperties.generator = {
                     uri: propertyValue['@_uri'],
-                    version: propertyValue['@_version']
+                    version: propertyValue['@_version'],
+                    text: propertyValue['#text']
                 };
                 break;
             case "title":
