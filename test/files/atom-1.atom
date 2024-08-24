@@ -1,0 +1,58 @@
+<feed>
+   <title type="text">My Awesome Feed Title</title>
+   <subtitle type="html">
+       <p>My Awesome Subtitle</p>
+    </subtitle>
+   <updated>2005-07-31T12:29:29Z</updated>
+   <id>tag:example.org,2003:3</id>
+   <link rel="alternate" type="text/html" hreflang="en" href="http://example.org/"/>
+   <link rel="self" type="application/atom+xml" href="http://example.org/feed.atom"/>
+   <rights>Copyright (c) 2003, Craig Bailey</rights>
+   <generator uri="http://www.example.com/" version="1.0">
+        Example Toolkit
+    </generator>
+    <category label="FeedCategoryLabel1" term="FeedCategoryTerm1"/>
+    <category label="FeedCategoryLabel2" term="FeedCategoryTerm2"/>
+    <author>
+        <name>Craig Bailey</name>
+        <uri>http://example.org/</uri>
+        <email>f8dy@example.com</email>
+    </author>
+    <contributor>
+        <name>John Doe</name>
+    </contributor>
+    <contributor>
+        <name>Jane Doe</name>
+    </contributor>
+    <icon>/icon.ico</icon>
+    <logo>/logo.jpg</logo>
+    <nonstandardfeedproperty>Non Standard Feed Property</nonstandardfeedproperty>
+   <entry>
+      <source id="abc123" title="my-awesome-title" updated="2005-07-31T12:29:29Z"/>
+      <title>Atom draft-07 snapshot</title>
+      <link rel="alternate" type="text/html" href="http://example.org/2005/04/02/atom"/>
+      <link rel="enclosure" type="audio/mpeg" length="1337"
+            href="http://example.org/audio/ph34r_my_podcast.mp3"/>
+      <id>my-awesome-entry-1</id>
+      <updated>2005-07-31T12:29:29Z</updated>
+      <published>2003-12-13T08:29:29-04:00</published>
+      <author>
+         <name>Craig Bailey</name>
+         <uri>http://example.org/</uri>
+         <email>craigbailey@example.com</email>
+      </author>
+        <contributor>
+            <name>John Doe</name>
+        </contributor>
+        <contributor>
+            <name>Jane Doe</name>
+        </contributor>
+      <category label="EntryCategoryLabel1" term="EntryCategoryTerm1"/>
+      <category label="EntryCategoryLabel2" term="EntryCategoryTerm2"/>
+      <content type="xhtml" xml:lang="en" xml:base="http://myawesomeentrycontent.org/">
+         <div>
+            <p>My entry content</p>
+         </div>
+      </content>
+      <nonstandardentryproperty>Non Standard Entry Property</nonstandardentryproperty>
+   </entry>

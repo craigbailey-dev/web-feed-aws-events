@@ -1,0 +1,43 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "queue-send-failure",
+    "title": "Queue Send Failure",
+    "description": "The event sent to EventBridge when an attempt to send a meessage to an SQS queue fails",
+    "type": "object",
+    "properties": {
+      "source": {
+        "type": "string",
+        "const": "dlq"
+      },
+      "detail-type": {
+        "type": "string",
+        "description": "The event type, which denotes which queue has the failure",
+        "enum": [
+          "FEED_QUEUE_SEND_FAILURE",
+          "ITEM_QUEUE_SEND_FAILURE"
+        ]
+      },
+      "detail": {
+        "type": "object",
+        "description": "Description of the SQS message send failure. Copied from this [documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_BatchResultErrorEntry.html)",
+        "properties": {
+            "Code": {
+                "type": "string",
+                "description": "An error code representing why the action failed on this entry"
+            },
+            "Id": {
+                "type": "string",
+                "description": "The Id of an entry in a batch request"
+            },
+            "SenderFault": {
+                "type": "string",
+                "description": "Specifies whether the error happened due to the caller of the batch API action"
+            },
+            "Message": {
+                "type": "string",
+                "description": "A message explaining why the action failed on this entry"
+            }
+        }
+      }
+    }
+}

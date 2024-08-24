@@ -1,0 +1,130 @@
+# New Item Event
+
+*The event sent to EventBridge when a new feed item has been added.*
+
+## Properties
+
+- **`source`** *(string)*: The URL used to derive to content of the feed.
+- **`detail-type`** *(string)*: Must be: `"NEW_FEED_ITEM"`.
+- **`detail`** *(object)*: Properties of the feed and item. All properties correspond to the [RSS 2.0](https://cyber.harvard.edu/rss/rss.html) and [Atom 1.0](https://validator.w3.org/feed/docs/atom.html) specifications.
+  - **`source`** *(string)*: The URL used to derive to content of the feed.
+  - **`type`** *(string)*: The type of feed. Must be one of: `["RSS", "ATOM"]`.
+  - **`feed`** *(object)*: Details about the feed.
+    - **One of**
+      - Refer to *[rssFeed](#%24defs/rssFeed)*.
+      - Refer to *[atomFeed](#%24defs/atomFeed)*.
+  - **`item`** *(object)*: Properties of the feed item.
+    - **One of**
+      - Refer to *[rssItem](#%24defs/rssItem)*.
+      - Refer to *[atomItem](#%24defs/atomItem)*.
+## Definitions
+
+- <a id="%24defs/rssFeed"></a>**`rssFeed`** *(object)*
+  - **`title`** *(string)*: The name of the channel.
+  - **`link`** *(string)*: The URL to the HTML website corresponding to the channel.
+  - **`description`** *(string)*: Phrase or sentence describing the channel .
+  - **`categories`** *(array)*: An array of categories that the channel belongs to.
+    - **Items** *(string)*
+  - **`language`** *(string)*: The language the channel is written in.
+  - **`copyright`** *(string)*: Copyright notice for content in the channel.
+  - **`managingEditor`** *(string)*: Email address for person responsible for editorial content.
+  - **`webMaster`** *(string)*: Email address for person responsible for technical issues relating to channel.
+  - **`pubDate`** *(string)*: The publication date for the content in the channel.
+  - **`lastBuildDate`** *(string)*: The last time the content of the channel changed.
+  - **`generator`** *(string)*: A string indicating the program used to generate the channel.
+  - **`docs`** *(string)*: A URL that points to the documentation for the format used in the RSS file.
+  - **`cloud`** *(object)*: Allows processes to register with a cloud to be notified of updates to the channel, implementing a lightweight publish-subscribe protocol for RSS feeds.
+  - **`ttl`** *(number)*: Number of minutes that indicates how long a channel can be cached before refreshing from the source.
+  - **`image`** *(object)*: Specifies a GIF, JPEG or PNG image that can be displayed with the channel.
+    - **`url`** *(string)*: The URL of a GIF, JPEG or PNG image that represents the channel.
+    - **`title`** *(string)*: Describes the image, it's used in the ALT attribute of the HTML &lt;img&gt; tag when the channel is rendered in HTML.
+    - **`link`** *(string)*: The URL of the site, when the channel is rendered, the image is a link to the site.
+    - **`width`** *(number)*: Width of the image.
+    - **`height`** *(number)*: Height of the image.
+  - **`rating`** *(string)*: The [PICS](http://www.w3.org/PICS/) rating for the channel.
+  - **`textInput`** *(object)*: Specifies a text input box that can be displayed with the channel.
+    - **`title`** *(string)*: The label of the Submit button in the text input area.
+    - **`description`** *(string)*: Explains the text input area.
+    - **`name`** *(string)*: The name of the text object in the text input area.
+    - **`link`** *(string)*: The URL of the CGI script that processes text input request.
+  - **`skipHours`** *(array)*: A hint for aggregators telling them which hours they can skip, which takes the form of an array that contains up to 24 numbers, between 0 and 23, that specify a time in GMT.
+    - **Items** *(number)*
+  - **`skipDays`** *(array)*: A hint for aggregators telling them which days they can skip, which takes the form of an array that contains up to seven strings, with possible values of.
+    - **Items** *(string)*: Must be one of: `["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]`.
+- <a id="%24defs/rssItem"></a>**`rssItem`** *(object)*
+  - **`title`** *(string)*: The title of the item.
+  - **`link`** *(string)*: The URL of the item.
+  - **`description`** *(string)*: The item synopsis.
+  - **`author`** *(string)*: Email address of the author of the item.
+  - **`categories`** *(array)*: An array of categories that the item belongs to.
+    - **Items** *(string)*
+  - **`comments`** *(string)*: URL of a page for comments relating to the item.
+  - **`enclosure`** *(object)*: Describes a media object that is attached to the item.
+    - **`url`** *(string)*: Where the enclosure is located.
+    - **`length`** *(number)*: How big the media object is.
+    - **`type`** *(string)*: The MIME type of the media object.
+  - **`guid`** *(string)*: A string that uniquely identifies the item.
+  - **`pubDate`** *(string)*: Indicates when the item was published.
+  - **`source`** *(string)*: The RSS channel that the item came from.
+- <a id="%24defs/atomFeed"></a>**`atomFeed`** *(object)*
+  - **`id`** *(string)*: Identifer of the feed.
+  - **`title`**: The title of the feed. Refer to *[atomText](#%24defs/atomText)*.
+  - **`updated`** *(string)*: The last time the feed was modified.
+  - **`authors`** *(array)*: The authors of the feed.
+    - **Items**: Refer to *[atomPerson](#%24defs/atomPerson)*.
+  - **`links`** *(array)*: A related web page for the feed.
+    - **Items**: Refer to *[atomLink](#%24defs/atomLink)*.
+  - **`rights`**: Conveys information about rights, e.g. copyrights, held in and over the feed. Refer to *[atomText](#%24defs/atomText)*.
+  - **`generator`** *(object)*: Identifies the software used to generate the feed, for debugging and other purposes.
+    - **`uri`** *(string)*: Generator URI.
+    - **`version`** *(string)*: Generator version.
+    - **`text`** *(string)*: Generator name.
+  - **`categories`** *(array)*: Categories that the feed belongs to.
+    - **Items**: Refer to *[atomCategory](#%24defs/atomCategory)*.
+  - **`contributors`** *(array)*: Contributors to the feed.
+    - **Items**: Refer to *[atomPerson](#%24defs/atomPerson)*.
+  - **`icon`** *(string)*: Identifies a small image which provides iconic visual identification for the feed.
+  - **`logo`** *(string)*: Identifies a larger image which provides visual identification for the feed.
+  - **`subtitle`**: Contains a human-readable description or subtitle for the feed. Refer to *[atomText](#%24defs/atomText)*.
+- <a id="%24defs/atomItem"></a>**`atomItem`** *(object)*
+  - **`id`** *(string)*: Identifer of the item.
+  - **`title`**: The title of the item. Refer to *[atomText](#%24defs/atomText)*.
+  - **`updated`** *(string)*: The last time the item was modified.
+  - **`authors`** *(array)*: The authors of the item.
+    - **Items**: Refer to *[atomPerson](#%24defs/atomPerson)*.
+  - **`links`** *(array)*: A related web page for the item.
+    - **Items**: Refer to *[atomLink](#%24defs/atomLink)*.
+  - **`categories`** *(array)*: Categories that the item belongs to.
+    - **Items**: Refer to *[atomCategory](#%24defs/atomCategory)*.
+  - **`contributors`** *(array)*: Contributors to the item.
+    - **Items**: Refer to *[atomPerson](#%24defs/atomPerson)*.
+  - **`rights`**: Conveys information about rights, e.g. copyrights, held in and over the entry. Refer to *[atomText](#%24defs/atomText)*.
+  - **`published`** *(string)*: Contains the time of the initial creation or first availability of the entry.
+  - **`source`** *(object)*: Contains metadata from the source feed if this entry is a copy.
+    - **`id`** *(string)*: Identifer of the item.
+    - **`title`**: The title of the item. Refer to *[atomText](#%24defs/atomText)*.
+    - **`updated`** *(string)*: The last time the item was modified.
+  - **`summary`**: Conveys a short summary, abstract, or excerpt of the entry. Refer to *[atomText](#%24defs/atomText)*.
+  - **`content`**: Contains or links to the complete content of the entry.
+    - **All of**
+      - Refer to *[atomText](#%24defs/atomText)*.
+      - 
+        - **`src`** *(string)*: The URI of where the content can be found.
+- <a id="%24defs/atomPerson"></a>**`atomPerson`** *(object)*
+  - **`name`** *(string)*: The name of the person.
+  - **`email`** *(string)*: The email address of the person.
+  - **`uri`** *(string)*: The home page for the person.
+- <a id="%24defs/atomCategory"></a>**`atomCategory`** *(object)*
+  - **`term`** *(string)*: Identifies the category.
+  - **`scheme`** *(string)*: Identifies the categorization scheme via a URI.
+  - **`label`** *(string)*: Provides a human-readable label for display.
+- <a id="%24defs/atomText"></a>**`atomText`** *(object)*
+  - **`type`** *(string)*: The type of text. Must be one of: `["text", "html", "xhtml"]`.
+  - **`text`** *(string)*: The actual text.
+- <a id="%24defs/atomLink"></a>**`atomLink`** *(object)*
+  - **`href`** *(string)*: The URI of the resource.
+  - **`rel`** *(number)*: The link relationship type. Must be one of: `["alternate", "enclosure", "related", "self", "via"]`.
+  - **`type`** *(string)*: The media type of the resource.
+  - **`hreflang`** *(string)*: The language of the resource.
+  - **`title`** *(string)*: Display title of the link.
+  - **`length`** *(number)*: The size of the resource in bytes.

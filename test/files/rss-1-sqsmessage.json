@@ -1,0 +1,55 @@
+{
+    "source": "https://mock-source.com",
+    "item": {
+       "title": "Something very important has happened",
+       "link": "http://www.example.com/press-release/veryimportantmessagegoodjob",
+       "description": "This is a very informative item. Wow. Amazing",
+       "enclosure": {
+          "url": "http://www.example.com/sites/default/files/thumbnails/image/helloworld.jpeg",
+          "length": "70814",
+          "type": "image/jpeg"
+       },
+       "guid": "http://www.example.com/press-release/veryimportantmessage",
+       "pubDate": "Thu, 09 Feb 2023 16:45 EST",
+       "source": {
+          "url": "http://www.example.com/rss/dyn/breaking_news.rss",
+          "name": "Breaking News"
+       },
+       "categories": [
+          "breaking"
+       ]
+    },
+    "type": "RSS",
+    "feed": {
+       "title": "Breaking News",
+       "description": "A RSS news feed containing the latest news",
+       "link": "http://www.example.com/",
+       "language": "en-US",
+       "categories": [
+          "news"
+       ],
+       "image": {
+          "url": "https://www.example.com/images/logo.gif",
+          "title": "Breaking News logo",
+          "link": "https://www.example.com",
+          "width": 128,
+          "height": 128
+       },
+       "textInput": {
+          "title": "Breaking News logo",
+          "link": "https://www.example.com"
+       },
+       "skipHours": [
+          0,
+          null
+       ],
+       "skipDays": [
+          "Saturday",
+          "Sunday"
+       ],
+       "managingEditor": "john.doe@example.com",
+       "webMaster": "jane.doe@example.com",
+       "docs": "http://blogs.harvard.edu/tech/rss",
+       "ttl": 60
+    }
+ }
