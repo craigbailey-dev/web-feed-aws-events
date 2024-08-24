@@ -24,7 +24,7 @@ A highly configurable serverless solution that behaves like a news aggregator fo
 ### Sources Table
 
 | Attribute           | Type                | Description                                                                                    |
-| ------------------- |:--------------------| :----------------------------------------------------------------------------------------------|
+|:------------------- |:--------------------| :----------------------------------------------------------------------------------------------|
 | source              | String              | An HTTP/S URL for the feed                                                                     |
 | type                | String              | The feed type (ATOM or RSS)                                                                    |
 | httpHeaderOverrides | Map<String, String> | A map of HTTP headers to set when making a<br>request to retrieve content from the source      |
@@ -32,7 +32,7 @@ A highly configurable serverless solution that behaves like a news aggregator fo
 ### Items Table
 
 | Attribute      | Type                | Description                                                                                    |
-| ---------------|:--------------------| :----------------------------------------------------------------------------------------------|
+|:---------------|:--------------------| :----------------------------------------------------------------------------------------------|
 | source         | String              | The URL of the feed                                                                            |
 | id 		     | String              | The unique ID of the channel item                                                              |
 
@@ -43,7 +43,7 @@ A highly configurable serverless solution that behaves like a news aggregator fo
 There are multiple event types that can be sent to the event bus. 
 
 | Event                    |Description                               | Schema                                                
-| -------------------------|:-----------------------------------------|:----------------------------------------------------------------------------------------------------------------
+|:-------------------------|:-----------------------------------------|:----------------------------------------------------------------------------------------------------------------
 | New Feed Item            | A new item has been added to the feed    | [JSON Schema](docs/schema/new-item.schema.json)&nbsp;&nbsp;[Markdown](docs/schema/new-item.schema.md)
 | Queue Send Failure 	   | Failed to send a message to a queue      | [JSON Schema](docs/schema/queue-send-failure.event)&nbsp;&nbsp;[Markdown](docs/schema/new-item.schema.md)
 | Queue Processing Failure | Failed to process a message from a queue | [JSON Schema](docs/schema/queue-processing-failure.json)&nbsp;&nbsp;[Markdown](docs/schema/new-item.schema.md)
