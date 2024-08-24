@@ -100,12 +100,13 @@ async function listIds(source){
  * @returns {Promise<BatchResultErrorEntry[]>} Queue messages that fail to send
  */
 async function sendQueueMessages(source, type, feedAttributes, newItems){
+    const messageDelaySeconds = parseInt(process.env.ITEM_DELAY);
     if(newItems.length){
         for(let batchIndex = 0; batchIndex < newItems.length; batchIndex += 10){
             const batch = newItems.slice(batchIndex, batchIndex + 10);
             const sendMessageBatchResponse = await sqsClient.send(new SendMessageBatchCommand({
                 QueueUrl: process.env.ITEM_QUEUE_URL,
-                Entries: batch.map((item) => {
+                Entries: batch.map((item, index) => {
                     return {
                         Id: randomUUID(),
                         MessageBody: JSON.stringify({
@@ -113,7 +114,8 @@ async function sendQueueMessages(source, type, feedAttributes, newItems){
                             item,
                             type,
                             feed: feedAttributes
-                        })
+                        }),
+                        DelaySeconds: Math.min(900, batchIndex * messageDelaySeconds + (index + 1) * messageDelaySeconds)
                     };
                 })
             }));
@@ -126,7 +128,7 @@ async function sendQueueMessages(source, type, feedAttributes, newItems){
                     Entries: sendMessageBatchResponse.Failed.map(failed => ({
                         Id: randomUUID(),
                         MessageBody: JSON.stringify({
-                        type: "ITEM_QUEUE_SEND_FAILURE",
+                            type: "ITEM_QUEUE_SEND_FAILURE",
                             data: failed
                         })
                     }))

@@ -1,18 +1,19 @@
-# EventBridge Event
+# New Item Event
 
-The event sent to the EventBridge target
+*The event sent to EventBridge when a new feed item has been added.*
 
 ## Properties
 
 - **`source`** *(string)*: The URL used to derive to content of the feed.
-- **`detail`** *(object)*
+- **`detail-type`** *(string)*: Must be: `"NEW_FEED_ITEM"`.
+- **`detail`** *(object)*: Properties of the feed and item. All properties correspond to the [RSS 2.0](https://cyber.harvard.edu/rss/rss.html) and [Atom 1.0](https://validator.w3.org/feed/docs/atom.html) specifications.
   - **`source`** *(string)*: The URL used to derive to content of the feed.
   - **`type`** *(string)*: The type of feed. Must be one of: `["RSS", "ATOM"]`.
-  - **`feed`** *(object)*
+  - **`feed`** *(object)*: Details about the feed.
     - **One of**
       - Refer to *[rssFeed](#%24defs/rssFeed)*.
       - Refer to *[atomFeed](#%24defs/atomFeed)*.
-  - **`item`** *(object)*
+  - **`item`** *(object)*: Properties of the feed item.
     - **One of**
       - Refer to *[rssItem](#%24defs/rssItem)*.
       - Refer to *[atomItem](#%24defs/atomItem)*.
@@ -107,7 +108,8 @@ The event sent to the EventBridge target
   - **`content`**: Contains or links to the complete content of the entry.
     - **All of**
       - Refer to *[atomText](#%24defs/atomText)*.
-      - **`src`** *(string)*: The URI of where the content can be found.
+      - 
+        - **`src`** *(string)*: The URI of where the content can be found.
 - <a id="%24defs/atomPerson"></a>**`atomPerson`** *(object)*
   - **`name`** *(string)*: The name of the person.
   - **`email`** *(string)*: The email address of the person.

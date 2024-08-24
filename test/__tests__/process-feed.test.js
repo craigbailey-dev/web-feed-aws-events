@@ -17,6 +17,7 @@ function setEnvironment(){
     process.env.ITEM_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue";
     process.env.FEED_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/12345678910/MockFeedQueue";
     process.env.STANDARD_DEAD_LETTER_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/12345678910/MockDeadLetterQueue";
+    process.env.ITEM_DELAY = "1";
 }
 
 let dynamodbMock = mockClient(DynamoDBClient),
@@ -124,7 +125,8 @@ describe('process-item', () => {
             QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",  
             Entries: [{
                 Id: expect.any(String),
-                MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+                MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+                DelaySeconds: 1
             }]
         });
   });
@@ -182,7 +184,8 @@ describe('process-item', () => {
           QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",
           Entries: [{
               Id: expect.any(String),
-              MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+              MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+              DelaySeconds: 1
           }]
       });
   }); 
@@ -237,7 +240,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",  
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedRssSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedRssSqsMessage1),
+            DelaySeconds: 1
         }]
     });
   });
@@ -297,7 +301,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",  
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedRssSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedRssSqsMessage1),
+            DelaySeconds: 1
         }]
     });
   });
@@ -361,7 +366,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+            DelaySeconds: 1
         }]
     });
     expect(sqsMock).toHaveReceivedNthCommandWith(2, SendMessageBatchCommand, {
@@ -517,7 +523,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+            DelaySeconds: 1
         }]
     });
   });
@@ -649,7 +656,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+            DelaySeconds: 1
         }]
     });
   });
@@ -743,7 +751,8 @@ describe('process-item', () => {
         QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345678910/MockItemQueue",
         Entries: [{
             Id: expect.any(String),
-            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1)
+            MessageBody: expect.jsonMatching(expectedAtomSqsMessage1),
+            DelaySeconds: 1
         }]
     });
   });

@@ -1,16 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "event",
-  "title": "EventBridge Event",
-  "description": "",
+  "$id": "new-item",
+  "title": "New Item Event",
+  "description": "The event sent to EventBridge when a new feed item has been added.",
   "type": "object",
   "properties": {
     "source": {
       "type": "string",
       "description": "The URL used to derive to content of the feed"
     },
+    "detail-type": {
+      "type": "string",
+      "const": "NEW_FEED_ITEM"
+    },
     "detail": {
       "type": "object",
+      "description": "Properties of the feed and item. All properties correspond to the [RSS 2.0](https://cyber.harvard.edu/rss/rss.html) and [Atom 1.0](https://validator.w3.org/feed/docs/atom.html) specifications.",
       "properties": {
         "source": {
           "type": "string",
@@ -26,6 +31,7 @@
         },
         "feed": {
           "type": "object",
+          "description": "Details about the feed",
           "oneOf": [
             {
               "$ref": "#/$defs/rssFeed"
@@ -37,6 +43,7 @@
         },
         "item": {
           "type": "object",
+          "description": "Properties of the feed item",
           "oneOf": [
             {
               "$ref": "#/$defs/rssItem"

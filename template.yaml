@@ -40,7 +40,13 @@ Parameters:
   ItemQueueRetries:
     Description: The amount of seconds to retain a message in the item SQS queue
     Type: Number
-    Default: 3    
+    Default: 3
+  ItemQueueDelay:
+    Description: The amount of seconds to delay between batch entries when sending multiple messages to the item SQS queue.  
+    Type: Number
+    Default: 1
+    MinValue: 0
+    MaxValue: 900     
 
 Outputs:
   SourcesTableName:
@@ -201,6 +207,7 @@ Resources:
           FEED_QUEUE_URL: !Ref FeedQueue
           ITEM_QUEUE_URL: !Ref ItemQueue
           STANDARD_DEAD_LETTER_QUEUE_URL: !Ref DeadLetterQueue
+          ITEM_DELAY: !Sub "${ItemQueueDelay}"
       Events:
         SQSEvent:
           Type: SQS

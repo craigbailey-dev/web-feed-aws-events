@@ -1,0 +1,25 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "queue-processing-failure",
+    "title": "Queue Processing Failure",
+    "description": "The event sent to EventBridge when an SQS message was received, but was failed to be processed",
+    "type": "object",
+    "properties": {
+      "source": {
+        "type": "string",
+        "const": "dlq"
+      },
+      "detail-type": {
+        "type": "string",
+        "description": "The event type, which denotes which queue sent the message that failed to process",
+        "enum": [
+          "FEED_QUEUE_PROCESSING_FAILURE",
+          "ITEM_QUEUE_PROCESSING_FAILURE"
+        ]
+      },
+      "detail": {
+        "type": "object",
+        "description": "The original SQS record received. Can refer to this example of [SQS records](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#example-standard-queue-message-event)."
+      }
+    }
+}
